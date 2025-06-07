@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="shortcut icon" href="img/icon.png" type="image/x-icon">
+  <title>Fotos chassis</title>
+</head>
+<body>
+
+  <header>
+    <img src="img/grupojat.png" alt="logo jat">
+  </header>
+
+  <form id="uploadForm" enctype="multipart/form-data">
+    <label>Data:</label>
+    <input type="date" name="data" required />
+
+  <label>Inspetor Responsável:</label>
+<select name="responsavel" required>
+  <option value="" disabled selected>Selecione o responsável</option>
+  <option value="Dylan">Dylan</option>
+  <option value="Jacques">Jacques</option>
+  <option value="Everton">Everton</option>
+</select>
+
+
+    <label>Chassi (últimos dígitos):</label>
+    <input type="text" name="chassi" required />
+
+    <label>Selecione os arquivos:</label>
+    <input type="file" name="files" multiple required />
+
+    <br/>
+    <input type="submit" value="Enviar" />
+  </form>
+  <div class="status" id="status"></div>
+  <button id="voltar" style="display:none;">Voltar</button>
+
+
+
+<!-- SCRIPT -->
+
+<script>
+  const form = document.getElementById('uploadForm');
+  const status = document.getElementById('status');
+  const voltarBtn = document.getElementById('voltar');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    status.textContent = 'Enviando...';
+
+    try {
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      
+      });
+
+      const text = await response.text();
+      status.textContent = text;
+
+      form.style.display = 'none';
+      voltarBtn.style.display = 'inline-block';
+
+    } catch (err) {
+      status.textContent = '❌ Erro no envio.';
+    }
+  });
+
+  voltarBtn.addEventListener('click', () => {
+    window.location.reload(); 
+  });
+</script>
+
+</body>
+</html>
