@@ -21,44 +21,43 @@ destination: function (req, file, cb) {
     return cb(new Error('Campos obrigatórios não preenchidos.'));
   }
 
-  const dataParts = data.split('-'); 
-  const ano = dataParts[0];
-  const mes = dataParts[1];
-  const dia = dataParts[2];
+    const [ano, mes, dia] = data.split('-');
 
-  const mesExtenso = `${meses[parseInt(mes, 10) - 1]} - ${ano}`;
-  const diaMes = `${dia}-${mes}`;
+    const mesIndex = parseInt(mes, 10) - 1;
+    const mesExtenso = `${meses[mesIndex]} - ${ano}`;
+    const diaMes = `${dia}-${mes}`;
+
 
   // // Teste local 
   
-  // const folderPath = path.join(
-  //   'C:',
-  //   'Users',
-  //   'Cleyton Lima',
-  //   'Downloads',
-  //   'Uploads',
-  //   mesExtenso,
-  //   diaMes,
-  //   chassi,
-  //   responsavel
-  // );
-
-  // Servidor 
-
   const folderPath = path.join(
-    'Y:',
-    'Fotos Pré embarque - 2025',
-    'Embarques',
+    'C:',
+    'Users',
+    'Cleyton Lima',
+    'Downloads',
+    'Uploads',
     mesExtenso,
     diaMes,
     chassi,
     responsavel
   );
-  
 
+  // Servidor 
+
+  // const folderPath = path.join(
+  //   'Y:',
+  //   'Fotos Pré embarque - 2025',
+  //   'Embarques',
+  //   mesExtenso,
+  //   diaMes,
+  //   chassi,
+  //   responsavel
+  // );
+  
   fs.mkdirSync(folderPath, { recursive: true });
   cb(null, folderPath);
 },
+
 
   filename: function (req, file, cb) {
     const timestamp = Date.now();
