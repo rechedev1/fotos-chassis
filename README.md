@@ -1,6 +1,6 @@
 # Fotos Chassis
 
-Sistema web de upload de fotos para controle de imagens organizadas por data, nome do responsável e número do chassi. Ideal para cenários onde várias imagens são associadas a veículos ou máquinas.
+Sistema web de upload de fotos para controle de imagens organizadas por data, nome do responsável, tipo de inspeção e número do chassi. Baseado em cenários onde várias imagens são associadas a inspeção das máquinas.
 
 ---
 
@@ -11,11 +11,12 @@ Sistema web de upload de fotos para controle de imagens organizadas por data, no
 
   mês/
   dia/
-  responsável/
   chassi/
+  tipo de inspeção/
+  responsável/
   [fotos...]
 
-- Interface simples via navegador (frontend em HTML/CSS/JS puro)
+- Interface simples via navegador (frontend em HTML/CSS/JS)
 - Backend em Node.js
 - Armazenamento local (diretório no servidor)
 - Tailscale (para acesso remoto ao servidor local)
