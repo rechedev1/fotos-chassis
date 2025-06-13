@@ -1,79 +1,120 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="shortcut icon" href="img/icon.png" type="image/x-icon">
-  <title>Fotos chassis</title>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="shortcut icon" href="img/icon.png" type="image/x-icon" />
+    <title>Fotos chassis</title>
+  </head>
+  <body>
+    <header>
+      <img src="img/grupojat.png" alt="logo jat" />
+    </header>
 
-  <header>
-    <img src="img/grupojat.png" alt="logo jat">
-  </header>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <label>Data:</label>
+      <input type="date" name="data" required />
 
-  <form id="uploadForm" enctype="multipart/form-data">
-    <label>Data:</label>
-    <input type="date" name="data" required />
+      <label>Inspetor Responsável:</label>
+      <select name="responsavel" required>
+        <option value="" disabled selected>Selecione o responsável</option>
+        <option value="Dylan">Dylan</option>
+        <option value="Jacques">Jacques</option>
+        <option value="Everton">Everton</option>
+      </select>
 
-  <label>Inspetor Responsável:</label>
-<select name="responsavel" required>
-  <option value="" disabled selected>Selecione o responsável</option>
-  <option value="Dylan">Dylan</option>
-  <option value="Jacques">Jacques</option>
-  <option value="Everton">Everton</option>
-</select>
+      <label>Tipo de inspeção:</label>
+      <select name="tipo" required>
+        <option value="" disabled selected>Selecione o tipo</option>
+        <option value="Transferência">Transferência</option>
+        <option value="Embarque">Embarque</option>
+      </select>
 
+      <label>Chassi (últimos dígitos):</label>
+      <input type="text" name="chassi" required />
 
-    <label>Chassi (últimos dígitos):</label>
-    <input type="text" name="chassi" required />
+      <label>Selecione os arquivos:</label>
+      <input type="file" name="files" multiple required />
 
-    <label>Selecione os arquivos:</label>
-    <input type="file" name="files" multiple required />
+      <br />
+      <input type="submit" value="Enviar" />
+    </form>
+    <div class="status" id="status"></div>
+    <button id="voltar" style="display: none">Voltar</button>
 
-    <br/>
-    <input type="submit" value="Enviar" />
-  </form>
-  <div class="status" id="status"></div>
-  <button id="voltar" style="display:none;">Voltar</button>
+    <!-- SCRIPT -->
 
+    <script>
+      const form = document.getElementById("uploadForm");
+      const status = document.getElementById("status");
+      const voltarBtn = document.getElementById("voltar");
+      const chassiInput = document.querySelector('input[name="chassi"]');
+      const tipoSelect = document.querySelector('select[name="tipo"]');
+      const dataInput = document.querySelector('input[name="data"]');
 
+      let duplicado = false;
 
-<!-- SCRIPT -->
+      async function verificarDuplicidade() {
+        const data = dataInput.value;
+        const chassi = chassiInput.value.trim();
+        const tipo = tipoSelect.value;
 
-<script>
-  const form = document.getElementById('uploadForm');
-  const status = document.getElementById('status');
-  const voltarBtn = document.getElementById('voltar');
+        if (!data || !chassi || !tipo) return;
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(form);
-    status.textContent = 'Enviando...';
+        try {
+          const res = await fetch("/verificar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data, chassi, tipo }),
+          });
 
-    try {
-      const response = await fetch('/upload', {
-        method: 'POST',
-        body: formData
-      
+          const result = await res.json();
+          duplicado = result.duplicado;
+
+          if (duplicado) {
+            status.textContent =
+              "⚠️ Já existem fotos para esse chassi e tipo de inspeção.";
+            status.style.color = "orange";
+          } else {
+            status.textContent = "";
+          }
+        } catch (err) {
+          console.error("Erro na verificação:", err);
+        }
+      }
+
+      chassiInput.addEventListener("input", verificarDuplicidade);
+      tipoSelect.addEventListener("change", verificarDuplicidade);
+      dataInput.addEventListener("change", verificarDuplicidade);
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (duplicado) {
+          status.textContent =
+            "⚠️ Envio bloqueado: já existem fotos para esse chassi/tipo.";
+          return;
+        }
+
+        const formData = new FormData(form);
+        status.textContent = "Enviando...";
+
+        try {
+          const response = await fetch("/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          const text = await response.text();
+          status.textContent = text;
+          form.style.display = "none";
+          voltarBtn.style.display = "inline-block";
+        } catch (err) {
+          status.textContent = "❌ Erro no envio.";
+        }
       });
 
-      const text = await response.text();
-      status.textContent = text;
-
-      form.style.display = 'none';
-      voltarBtn.style.display = 'inline-block';
-
-    } catch (err) {
-      status.textContent = '❌ Erro no envio.';
-    }
-  });
-
-  voltarBtn.addEventListener('click', () => {
-    window.location.reload(); 
-  });
-</script>
-
-</body>
+      voltarBtn.addEventListener("click", () => window.location.reload());
+    </script>
+  </body>
 </html>
