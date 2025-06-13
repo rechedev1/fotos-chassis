@@ -44,7 +44,6 @@
     <button id="voltar" style="display: none">Voltar</button>
 
     <!-- SCRIPT -->
-
     <script>
       const form = document.getElementById("uploadForm");
       const status = document.getElementById("status");
@@ -52,6 +51,7 @@
       const chassiInput = document.querySelector('input[name="chassi"]');
       const tipoSelect = document.querySelector('select[name="tipo"]');
       const dataInput = document.querySelector('input[name="data"]');
+      const fileInput = document.querySelector('input[name="files"]');
 
       let duplicado = false;
 
@@ -73,12 +73,12 @@
           });
 
           const result = await res.json();
-          duplicado = result.duplicado;
+          duplicado = result.exists;
 
           if (duplicado) {
             status.textContent =
-              "⚠️ Já existem fotos para esse chassi e tipo de inspeção.";
-            status.style.color = "orange";
+              "❌ Já existem fotos para esse chassi e tipo de inspeção.";
+            status.style.color = "red";
             chassiInput.style.border = "2px solid red";
           } else {
             status.textContent = "";
@@ -86,23 +86,43 @@
           }
         } catch (err) {
           console.error("Erro na verificação:", err);
+          status.textContent = "❌ Erro ao verificar chassi.";
+          status.style.color = "red";
+        }
+      }
+
+      function verificarQuantidadeFotos() {
+        const arquivos = fileInput.files;
+        if (arquivos.length < 30) {
+          fileInput.style.border = "2px solid orange";
+          status.textContent = `⚠️ Atenção: menos de 30 fotos selecionadas (${arquivos.length}).`;
+          status.style.color = "orange";
+        } else {
+          fileInput.style.border = "2px solid green";
+          status.textContent = "";
         }
       }
 
       chassiInput.addEventListener("input", verificarDuplicidade);
       tipoSelect.addEventListener("change", verificarDuplicidade);
       dataInput.addEventListener("change", verificarDuplicidade);
+      fileInput.addEventListener("change", verificarQuantidadeFotos);
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
+
         if (duplicado) {
           status.textContent =
             "⚠️ Envio bloqueado: já existem fotos para esse chassi/tipo.";
+          status.style.color = "orange";
           return;
         }
 
+        verificarQuantidadeFotos(); // alerta informativo
+
         const formData = new FormData(form);
-        status.textContent = "Enviando...";
+        status.textContent = " Enviando...";
+        status.style.color = "blue";
 
         try {
           const response = await fetch("/upload", {
@@ -112,10 +132,12 @@
 
           const text = await response.text();
           status.textContent = text;
+          status.style.color = "green";
           form.style.display = "none";
           voltarBtn.style.display = "inline-block";
         } catch (err) {
           status.textContent = "❌ Erro no envio.";
+          status.style.color = "red";
         }
       });
 
