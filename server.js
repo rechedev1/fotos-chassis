@@ -111,16 +111,30 @@ app.post("/verificar", express.json(), (req, res) => {
   const mesExtenso = `${meses[mesIndex]} - ${ano}`;
   const diaMes = `${dia}-${mes}`;
 
+  // Verificar chassi - servidor de teste
+
+  // const basePath = path.join(
+  //   "C:",
+  //   "Users",
+  //   "Cleyton Lima",
+  //   "Downloads",
+  //   "Uploads",
+  //   mesExtenso,
+  //   diaMes,
+  //   chassi,
+  //   tipo
+  // );
+
+  // Verificar chassi - Servidor
   const basePath = path.join(
-    "C:",
-    "Users",
-    "Cleyton Lima",
-    "Downloads",
-    "Uploads",
+    "Y:",
+    "Fotos Pré embarque - 2025",
+    "Embarques",
     mesExtenso,
     diaMes,
     chassi,
-    tipo
+    tipo,
+    responsavel
   );
 
   if (fs.existsSync(basePath)) {
