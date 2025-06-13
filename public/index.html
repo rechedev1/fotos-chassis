@@ -60,10 +60,13 @@
         const chassi = chassiInput.value.trim();
         const tipo = tipoSelect.value;
 
-        if (!data || !chassi || !tipo) return;
+        if (!data || !chassi || !tipo) {
+          chassiInput.style.border = "";
+          return;
+        }
 
         try {
-          const res = await fetch("/verificar", {
+          const res = await fetch("/verificar-chassi", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ data, chassi, tipo }),
@@ -76,8 +79,10 @@
             status.textContent =
               "⚠️ Já existem fotos para esse chassi e tipo de inspeção.";
             status.style.color = "orange";
+            chassiInput.style.border = "2px solid red";
           } else {
             status.textContent = "";
+            chassiInput.style.border = "2px solid green";
           }
         } catch (err) {
           console.error("Erro na verificação:", err);

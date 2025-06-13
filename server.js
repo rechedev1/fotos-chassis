@@ -21,23 +21,23 @@ const meses = [
   "Dezembro",
 ];
 
-//  Caminho de destino oficial (servidor)
+// Caminho principal de upload
 const baseUploadPath = path.join(
   "Y:",
   "Fotos Pré embarque - 2025",
   "Embarques"
 );
 
-/*  Caminho antigo para testes locais
-const baseUploadPath = path.join(
-  "C:",
-  "Users",
-  "Cleyton Lima",
-  "Downloads",
-  "Uploads"
-);
-*/
+//  Caminho para testes locais
+// const baseUploadPath = path.join(
+//   "C:",
+//   "Users",
+//   "Cleyton Lima",
+//   "Downloads",
+//   "Uploads"
+// );
 
+// Armazenamento temporário
 const tempStorage = multer.memoryStorage();
 const tempUpload = multer({
   storage: tempStorage,
@@ -48,7 +48,7 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// 🚚 Rota de upload
+// Rota de upload
 app.post("/upload", tempUpload.array("files", 350), (req, res) => {
   const { data, responsavel, chassi, tipo } = req.body;
 
@@ -61,16 +61,20 @@ app.post("/upload", tempUpload.array("files", 350), (req, res) => {
   const mesExtenso = `${meses[mesIndex]} - ${ano}`;
   const diaMes = `${dia}-${mes}`;
 
-  const basePath = path.join(baseUploadPath, mesExtenso, diaMes, chassi, tipo);
+  // Caminho até o chassi
+  const basePath = path.join(baseUploadPath, mesExtenso, diaMes, chassi);
 
-  // 🔍 Verificação de duplicidade
-  if (fs.existsSync(basePath)) {
+  // Caminho da inspeção (tipo)
+  const tipoFolder = path.join(basePath, tipo);
+
+  // Verificação de duplicidade
+  if (fs.existsSync(tipoFolder)) {
     const subPastas = fs
-      .readdirSync(basePath, { withFileTypes: true })
+      .readdirSync(tipoFolder, { withFileTypes: true })
       .filter((dirent) => dirent.isDirectory());
 
     for (const pasta of subPastas) {
-      const arquivos = fs.readdirSync(path.join(basePath, pasta.name));
+      const arquivos = fs.readdirSync(path.join(tipoFolder, pasta.name));
       if (arquivos.length > 0) {
         return res
           .status(409)
@@ -79,10 +83,11 @@ app.post("/upload", tempUpload.array("files", 350), (req, res) => {
     }
   }
 
-  // 🗂️ Criar pasta final com o nome do responsável
-  const finalFolder = path.join(basePath, responsavel);
+  // Criar pasta final: .../chassi/tipo/responsavel
+  const finalFolder = path.join(tipoFolder, responsavel);
   fs.mkdirSync(finalFolder, { recursive: true });
 
+  // Salvar arquivos
   req.files.forEach((file) => {
     const timestamp = Date.now();
     const newName = `${timestamp}_${file.originalname}`;
@@ -92,7 +97,7 @@ app.post("/upload", tempUpload.array("files", 350), (req, res) => {
   res.send("✅ Upload concluído com sucesso!");
 });
 
-// 🔎 Verificação prévia via AJAX (frontend)
+// Verificação de duplicidade para JS (AJAX)
 app.post("/verificar-chassi", (req, res) => {
   const { data, chassi, tipo } = req.body;
 
@@ -105,34 +110,12 @@ app.post("/verificar-chassi", (req, res) => {
   const mesExtenso = `${meses[mesIndex]} - ${ano}`;
   const diaMes = `${dia}-${mes}`;
 
-  const chassiPath = path.join(
-    baseUploadPath,
-    mesExtenso,
-    diaMes,
-    chassi,
-    tipo
-  );
+  const tipoPath = path.join(baseUploadPath, mesExtenso, diaMes, chassi, tipo);
 
-  let exists = false;
-
-  if (fs.existsSync(chassiPath)) {
-    const subPastas = fs
-      .readdirSync(chassiPath, { withFileTypes: true })
-      .filter((dirent) => dirent.isDirectory());
-
-    for (const pasta of subPastas) {
-      const arquivos = fs.readdirSync(path.join(chassiPath, pasta.name));
-      if (arquivos.length > 0) {
-        exists = true;
-        break;
-      }
-    }
-  }
-
-  return res.json({ exists });
+  const exists = fs.existsSync(tipoPath);
+  res.json({ exists });
 });
 
-// ▶️ Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
